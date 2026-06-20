@@ -1,0 +1,16 @@
+LibraryApp/
+├── LibraryApp.csproj
+├── Program.cs
+├── Forms/
+│   ├── LoginForm.cs
+│   ├── LoginForm.Designer.cs
+│   ├── MainForm.cs
+│   ├── MainForm.Designer.cs
+│   ├── BookListForm.cs
+│   └── BookListForm.Designer.cs
+├── Database/
+│   └── DatabaseHelper.cs
+└── Models/
+    ├── Book.cs
+    ├── User.cs
+    └── Role.cs
