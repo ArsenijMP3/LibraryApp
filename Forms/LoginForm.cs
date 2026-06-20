@@ -1,158 +1,138 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using LibraryApp.Database;
 using LibraryApp.Models;
+using LibraryApp.Services;
 
 namespace LibraryApp.Forms
 {
-    public partial class LoginForm : Form
+    /// <summary>
+    /// Окно входа. Первое окно приложения (Задание 2.3).
+    /// Единый стиль оформления и нейминг см. Задание 2.2.
+    /// Используется через ShowDialog(): успешный вход/гость -> DialogResult.OK,
+    /// закрытие крестиком -> DialogResult.Cancel (приложение завершится).
+    /// </summary>
+    public class LoginForm : Form
     {
-        private DatabaseHelper _dbHelper;
-        
+        private readonly TextBox _txtLogin = new();
+        private readonly TextBox _txtPassword = new();
+        private readonly Button _btnLogin = new();
+        private readonly Button _btnGuest = new();
+        private readonly Label _lblError = new();
+
+        /// <summary>ФИО пользователя, под которым выполнен вход (заполняется после успешного входа).</summary>
+        public string LoggedInFio { get; private set; } = "";
+
+        /// <summary>Название роли пользователя (заполняется после успешного входа).</summary>
+        public string LoggedInRoleName { get; private set; } = "";
+
         public LoginForm()
         {
             InitializeComponent();
-            
-            // ⚠️ ИЗМЕНИТЕ ЭТОТ ПУТЬ НА СВОЙ!
-            string dbPath = @"D:\LibraryApp\base.accdb";
-            
-            if (!System.IO.File.Exists(dbPath))
-            {
-                using (OpenFileDialog ofd = new OpenFileDialog())
-                {
-                    ofd.Filter = "Access Database|*.accdb;*.mdb";
-                    ofd.Title = "Выберите файл базы данных";
-                    if (ofd.ShowDialog() == DialogResult.OK)
-                    {
-                        dbPath = ofd.FileName;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Файл базы данных не выбран. Приложение будет закрыто.", 
-                                       "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Environment.Exit(0);
-                    }
-                }
-            }
-            
-            _dbHelper = new DatabaseHelper(dbPath);
-            
-            if (!_dbHelper.TestConnection())
-            {
-                MessageBox.Show("Не удалось подключиться к базе данных.\n" +
-                               "Проверьте, что файл не открыт в Access.",
-                               "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            
-            textBoxPassword.KeyPress += TextBoxPassword_KeyPress;
-            textBoxLogin.KeyPress += TextBoxLogin_KeyPress;
-            textBoxLogin.Focus();
-            
-            // Подписываем события
-            buttonLogin.Click += ButtonLogin_Click;
-            buttonGuest.Click += ButtonGuest_Click;
         }
 
-        private void ButtonLogin_Click(object sender, EventArgs e)
+        private void InitializeComponent()
         {
-            string login = textBoxLogin.Text.Trim();
-            string password = textBoxPassword.Text.Trim();
+            Text = "Библиотека — Вход";
+            ClientSize = new Size(380, 300);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterScreen;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Font = new Font("Segoe UI", 10F);
+            BackColor = Color.White;
+
+            var lblLogo = new Label
+            {
+                Text = "📚  Система учёта книг в библиотеке",
+                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(33, 47, 61),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Location = new Point(0, 20),
+                Size = new Size(380, 50)
+            };
+
+            var lblLogin = new Label { Text = "Логин:", Location = new Point(50, 95), AutoSize = true };
+            _txtLogin.Location = new Point(50, 115);
+            _txtLogin.Size = new Size(280, 25);
+
+            var lblPassword = new Label { Text = "Пароль:", Location = new Point(50, 150), AutoSize = true };
+            _txtPassword.Location = new Point(50, 170);
+            _txtPassword.Size = new Size(280, 25);
+            _txtPassword.UseSystemPasswordChar = true;
+
+            _btnLogin.Text = "Войти";
+            _btnLogin.Location = new Point(50, 210);
+            _btnLogin.Size = new Size(135, 32);
+            _btnLogin.BackColor = Color.FromArgb(46, 139, 87);
+            _btnLogin.ForeColor = Color.White;
+            _btnLogin.FlatStyle = FlatStyle.Flat;
+            _btnLogin.Click += BtnLogin_Click;
+
+            _btnGuest.Text = "Войти как гость";
+            _btnGuest.Location = new Point(195, 210);
+            _btnGuest.Size = new Size(135, 32);
+            _btnGuest.FlatStyle = FlatStyle.Flat;
+            _btnGuest.Click += BtnGuest_Click;
+
+            _lblError.ForeColor = Color.Red;
+            _lblError.Location = new Point(50, 255);
+            _lblError.Size = new Size(280, 30);
+            _lblError.TextAlign = ContentAlignment.MiddleCenter;
+
+            Controls.AddRange(new Control[]
+            {
+                lblLogo, lblLogin, _txtLogin, lblPassword, _txtPassword,
+                _btnLogin, _btnGuest, _lblError
+            });
+
+            AcceptButton = _btnLogin;
+        }
+
+        private void BtnLogin_Click(object? sender, EventArgs e)
+        {
+            string login = _txtLogin.Text.Trim();
+            string password = _txtPassword.Text;
 
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
             {
-                ShowError("Введите логин и пароль");
+                _lblError.Text = "Введите логин и пароль";
                 return;
             }
 
             try
             {
-                buttonLogin.Enabled = false;
-                buttonGuest.Enabled = false;
-                
-                var user = _dbHelper.AuthenticateUser(login, password);
-                
-                if (user != null)
+                Reader? reader = AuthService.TryLogin(login, password);
+
+                if (reader == null)
                 {
-                    labelError.Text = "";
-                    this.Hide();
-                    
-                    using (var mainForm = new MainForm(user, _dbHelper))
-                    {
-                        mainForm.ShowDialog();
-                    }
-                    
-                    this.Show();
-                    textBoxLogin.Text = "";
-                    textBoxPassword.Text = "";
-                    labelError.Text = "";
-                    textBoxLogin.Focus();
+                    _lblError.Text = "Неверный логин или пароль";
+                    return;
                 }
-                else
-                {
-                    ShowError("Неверный логин или пароль");
-                    textBoxPassword.Text = "";
-                    textBoxPassword.Focus();
-                }
+
+                LoggedInFio = reader.Fio;
+                LoggedInRoleName = reader.RoleName;
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {
-                ShowError($"Ошибка: {ex.Message}");
-            }
-            finally
-            {
-                buttonLogin.Enabled = true;
-                buttonGuest.Enabled = true;
-            }
-        }
-
-        private void ButtonGuest_Click(object sender, EventArgs e)
-        {
-            var guestUser = new User
-            {
-                Id = 0,
-                FullName = "Гость",
-                Login = "",
-                Password = "",
-                RoleId = 0,
-                RoleName = "гость",
-                Contact = ""
-            };
-
-            this.Hide();
-            
-            using (var mainForm = new MainForm(guestUser, _dbHelper))
-            {
-                mainForm.ShowDialog();
-            }
-            
-            this.Show();
-            textBoxLogin.Text = "";
-            textBoxPassword.Text = "";
-            labelError.Text = "";
-        }
-
-        private void TextBoxPassword_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                ButtonLogin_Click(sender, e);
+                MessageBox.Show(
+                    $"Ошибка подключения к базе данных:\n{ex.Message}",
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
-        private void TextBoxLogin_KeyPress(object sender, KeyPressEventArgs e)
+        private void BtnGuest_Click(object? sender, EventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                textBoxPassword.Focus();
-            }
-        }
-
-        private void ShowError(string message)
-        {
-            labelError.Text = message;
-            labelError.ForeColor = Color.Red;
-            labelError.Visible = true;
+            // Гость не проходит авторизацию — сразу переходит к просмотру каталога.
+            LoggedInFio = "Гость";
+            LoggedInRoleName = "гость";
+            DialogResult = DialogResult.OK;
+            Close();
         }
     }
 }

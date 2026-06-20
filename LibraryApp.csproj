@@ -2,13 +2,24 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <UseWindowsForms>true</UseWindowsForms>
-    <Nullable>disable</Nullable>
+    <RootNamespace>LibraryApp</RootNamespace>
+    <AssemblyName>LibraryApp</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.OleDb" Version="10.0.9" />
+    <!-- Нужен для OleDbConnection в .NET 6+/7+ (в Framework был встроен, тут — отдельный пакет) -->
+    <PackageReference Include="System.Data.OleDb" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- base.accdb копируется рядом с .exe при каждой сборке -->
+    <None Update="base.accdb" Condition="Exists('base.accdb')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

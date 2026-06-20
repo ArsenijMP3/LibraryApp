@@ -4,22 +4,40 @@ using LibraryApp.Forms;
 
 namespace LibraryApp
 {
-    static class Program
+    internal static class Program
     {
         [STAThread]
-        static void Main()
+        private static void Main()
         {
-            try
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            // Цикл "окно входа -> главный экран -> (логаут) -> снова окно входа -> ... -> выход".
+            // Каждая форма создаётся и корректно освобождается (using), утечек скрытых форм нет.
+            while (true)
             {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new LoginForm());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Критическая ошибка: {ex.Message}\n\n" +
-                               "Приложение будет закрыто.",
-                               "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string fio;
+                string roleName;
+
+                using (var loginForm = new LoginForm())
+                {
+                    // Окно входа — первое, что видит пользователь (Задание 2.3)
+                    if (loginForm.ShowDialog() != DialogResult.OK)
+                    {
+                        break; // окно входа закрыто крестиком -> выход из приложения
+                    }
+
+                    fio = loginForm.LoggedInFio;
+                    roleName = loginForm.LoggedInRoleName;
+                }
+
+                using var mainForm = new MainForm(fio, roleName);
+                if (mainForm.ShowDialog() != DialogResult.OK)
+                {
+                    break; // главное окно закрыто крестиком -> выход из приложения
+                }
+                // DialogResult.OK от MainForm означает "Выход" -> по циклу возвращаемся к окну входа
             }
         }
     }
