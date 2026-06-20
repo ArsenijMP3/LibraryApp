@@ -15,7 +15,7 @@ namespace LibraryApp.Forms
             InitializeComponent();
             
             // ⚠️ ИЗМЕНИТЕ ЭТОТ ПУТЬ НА СВОЙ!
-            string dbPath = @"C:\Users\YourUser\Documents\Library.accdb";
+            string dbPath = @"D:\LibraryApp\base.accdb";
             
             if (!System.IO.File.Exists(dbPath))
             {
