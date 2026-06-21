@@ -70,7 +70,7 @@ namespace LibraryApp.Forms
             _btnLogin.FlatStyle = FlatStyle.Flat;
             _btnLogin.Click += BtnLogin_Click;
 
-            _btnGuest.Text = "Войти как гость";
+            _btnGuest.Text = "Гость";
             _btnGuest.Location = new Point(195, 210);
             _btnGuest.Size = new Size(135, 32);
             _btnGuest.FlatStyle = FlatStyle.Flat;
