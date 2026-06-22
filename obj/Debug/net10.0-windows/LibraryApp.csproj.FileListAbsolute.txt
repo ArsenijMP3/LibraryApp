@@ -1,4 +1,9 @@
-D:\LibraryApp\bin\Debug\net10.0-windows\base.accdb
+D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.csproj.AssemblyReference.cache
+D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.GeneratedMSBuildEditorConfig.editorconfig
+D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.AssemblyInfoInputs.cache
+D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.AssemblyInfo.cs
+D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.csproj.CoreCompileInputs.cache
+D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.sourcelink.json
 D:\LibraryApp\bin\Debug\net10.0-windows\LibraryApp.exe
 D:\LibraryApp\bin\Debug\net10.0-windows\LibraryApp.deps.json
 D:\LibraryApp\bin\Debug\net10.0-windows\LibraryApp.runtimeconfig.json
@@ -6,12 +11,6 @@ D:\LibraryApp\bin\Debug\net10.0-windows\LibraryApp.dll
 D:\LibraryApp\bin\Debug\net10.0-windows\LibraryApp.pdb
 D:\LibraryApp\bin\Debug\net10.0-windows\System.Data.OleDb.dll
 D:\LibraryApp\bin\Debug\net10.0-windows\runtimes\win\lib\net10.0\System.Data.OleDb.dll
-D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.csproj.AssemblyReference.cache
-D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.GeneratedMSBuildEditorConfig.editorconfig
-D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.AssemblyInfoInputs.cache
-D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.AssemblyInfo.cs
-D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.csproj.CoreCompileInputs.cache
-D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.sourcelink.json
 D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.csproj.Up2Date
 D:\LibraryApp\obj\Debug\net10.0-windows\LibraryApp.dll
 D:\LibraryApp\obj\Debug\net10.0-windows\refint\LibraryApp.dll

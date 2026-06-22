@@ -14,18 +14,20 @@ namespace LibraryApp.Data
     {
         private static string GetDbPath()
         {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string path = Path.Combine(baseDir, "base.accdb");
+            string projectDb = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..",
+                "base.accdb"));
 
-            if (!File.Exists(path))
-            {
-                throw new FileNotFoundException(
-                    $"Файл базы данных не найден: {path}\n" +
-                    "Скопируйте base.accdb в папку с .exe (или рядом с проектом, " +
-                    "тогда он скопируется автоматически при сборке).");
-            }
+            if (File.Exists(projectDb))
+                return projectDb;
 
-            return path;
+            string localDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "base.accdb");
+
+            if (File.Exists(localDb))
+                return localDb;
+
+            throw new FileNotFoundException($"Не найден файл БД: {projectDb} или {localDb}");
         }
 
         public static string ConnectionString =>

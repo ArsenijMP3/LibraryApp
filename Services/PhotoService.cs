@@ -15,8 +15,16 @@ namespace LibraryApp.Services
         private const int TargetWidth = 300;
         private const int TargetHeight = 200;
 
-        public static string PhotosFolder =>
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Photos");
+        public static string PhotosFolder
+        {
+            get
+            {
+                string projectFolder = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", ".."));
+                string photos = Path.Combine(projectFolder, "Photos");
+                Directory.CreateDirectory(photos);
+                return photos;
+            }
+        }
 
         /// <summary>
         /// Копирует выбранный пользователем файл, приводит к 300×200 px, сохраняет в папку Photos.
@@ -55,7 +63,7 @@ namespace LibraryApp.Services
                 return;
             }
 
-            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
+            string fullPath = Path.GetFullPath(Path.Combine(PhotosFolder, Path.GetFileName(relativePath)));
 
             if (File.Exists(fullPath))
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using LibraryApp.Models;
 using LibraryApp.Services;
@@ -35,6 +36,9 @@ namespace LibraryApp.Forms
         private readonly Button _btnDelete = new();
 
         private readonly DataGridView _grid = new();
+
+        private const int PhotoColumnIndex = 0;  // фото — первая колонка
+        private const int PhotoCellSize = 60;    // высота строки с картинкой (px)
 
         private bool _isLoading; // защита от рекурсивных Search-событий при программном заполнении комбобоксов
 
@@ -78,10 +82,25 @@ namespace LibraryApp.Forms
             _btnLogout.FlatStyle = FlatStyle.Flat;
             _btnLogout.Click += BtnLogout_Click;
 
+            // Кнопка «Выдачи» — библиотекарь и администратор могут просматривать выдачи
+            var btnLoans = new Button
+            {
+                Text = "Выдачи",
+                Size = new Size(90, 30),
+                FlatStyle = FlatStyle.Flat,
+                Visible = CanSearchFilterSort   // true у библиотекаря и администратора
+            };
+            btnLoans.Click += (_, _) =>
+            {
+                using var loansForm = new LoansForm();
+                loansForm.ShowDialog(this);
+            };
+
             _topPanel.Controls.Add(_lblUser);
+            _topPanel.Controls.Add(btnLoans);
             _topPanel.Controls.Add(_btnLogout);
-            _topPanel.Resize += (_, _) => PositionTopPanelControls();
-            Load += (_, _) => PositionTopPanelControls();
+            _topPanel.Resize += (_, _) => PositionTopPanelControls(btnLoans);
+            Load += (_, _) => PositionTopPanelControls(btnLoans);
 
             // --- панель поиска/фильтра/сортировки (3.2) ---
             _toolPanel.Dock = DockStyle.Top;
@@ -167,15 +186,28 @@ namespace LibraryApp.Forms
             Controls.Add(_topPanel);
         }
 
-        private void PositionTopPanelControls()
+        private void PositionTopPanelControls(Button? btnLoans = null)
         {
             _btnLogout.Location = new Point(
                 _topPanel.Width - _btnLogout.Width - 15,
                 (_topPanel.Height - _btnLogout.Height) / 2);
 
-            _lblUser.Location = new Point(
-                _btnLogout.Left - _lblUser.Width - 20,
-                (_topPanel.Height - _lblUser.Height) / 2);
+            if (btnLoans != null && btnLoans.Visible)
+            {
+                btnLoans.Location = new Point(
+                    _btnLogout.Left - btnLoans.Width - 10,
+                    (_topPanel.Height - btnLoans.Height) / 2);
+
+                _lblUser.Location = new Point(
+                    btnLoans.Left - _lblUser.Width - 20,
+                    (_topPanel.Height - _lblUser.Height) / 2);
+            }
+            else
+            {
+                _lblUser.Location = new Point(
+                    _btnLogout.Left - _lblUser.Width - 20,
+                    (_topPanel.Height - _lblUser.Height) / 2);
+            }
         }
 
         /// <summary>
@@ -268,6 +300,19 @@ namespace LibraryApp.Forms
         private void FillGrid(System.Collections.Generic.List<BookRow> books)
         {
             _grid.Columns.Clear();
+
+            // Колонка с фото (DataGridViewImageColumn) — первой
+            var imgCol = new DataGridViewImageColumn
+            {
+                Name = "Photo",
+                HeaderText = "Фото",
+                Width = 70,
+                ImageLayout = DataGridViewImageCellLayout.Zoom,
+                DefaultCellStyle = { NullValue = null, Alignment = DataGridViewContentAlignment.MiddleCenter }
+            };
+            imgCol.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            _grid.Columns.Add(imgCol);
+
             _grid.Columns.Add("Title", "Название");
             _grid.Columns.Add("Author", "Автор");
             _grid.Columns.Add("Genre", "Жанр");
@@ -277,11 +322,16 @@ namespace LibraryApp.Forms
             _grid.Columns.Add("Description", "Описание");
             _grid.Columns.Add("Availability", "Наличие");
 
+            _grid.RowTemplate.Height = PhotoCellSize;
             _grid.Rows.Clear();
 
             foreach (BookRow book in books)
             {
+                // Сразу ставим плейсхолдер — реальная картинка заменит его async
+                Image placeholder = ImageService.Resize(null, 60, PhotoCellSize - 4);
+
                 int rowIndex = _grid.Rows.Add(
+                    placeholder,
                     book.Title,
                     book.Author,
                     book.Genre,
@@ -292,6 +342,51 @@ namespace LibraryApp.Forms
                     book.Availability);
 
                 _grid.Rows[rowIndex].Tag = book;
+            }
+
+            // Асинхронно загружаем настоящие картинки поверх плейсхолдеров
+            _ = LoadImagesAsync(books);
+        }
+
+        /// <summary>
+        /// Загружает изображения по URL/пути из поля "фото" базы данных.
+        /// Работает в фоне — плейсхолдеры заменяются реальными обложками по мере загрузки.
+        /// </summary>
+        private async Task LoadImagesAsync(System.Collections.Generic.List<BookRow> books)
+        {
+            for (int i = 0; i < books.Count; i++)
+            {
+                string? url = books[i].PhotoPath;
+
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    continue;
+                }
+
+                // Загружаем картинку (кеш в ImageService — повторно не грузит)
+                Image? raw = await ImageService.LoadAsync(url);
+
+                if (raw == null)
+                {
+                    continue; // плейсхолдер уже стоит — оставляем его
+                }
+
+                Image thumb = ImageService.Resize(raw, 60, PhotoCellSize - 4);
+
+                // Возвращаемся в UI-поток перед обновлением ячейки
+                if (IsDisposed || !IsHandleCreated)
+                {
+                    return;
+                }
+
+                Invoke(() =>
+                {
+                    // Проверяем, что строка не была заменена (пользователь мог сделать новый поиск)
+                    if (i < _grid.Rows.Count && _grid.Rows[i].Tag is BookRow rowBook && rowBook.Id == books[i].Id)
+                    {
+                        _grid.Rows[i].Cells[PhotoColumnIndex].Value = thumb;
+                    }
+                });
             }
         }
 
