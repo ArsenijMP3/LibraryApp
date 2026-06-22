@@ -13,6 +13,7 @@ namespace LibraryApp.Models
         public string? Publisher { get; set; }
         public int Copies { get; set; }
         public string? Description { get; set; }
+        public string? PhotoPath { get; set; }
 
         /// <summary>"Нет в наличии" / "В наличии" / "Выдана" — вычисляется по количеству экземпляров и активным выдачам.</summary>
         public string Availability { get; set; } = "";

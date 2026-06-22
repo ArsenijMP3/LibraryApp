@@ -26,6 +26,12 @@ namespace LibraryApp.Forms
         /// <summary>Название роли пользователя (заполняется после успешного входа).</summary>
         public string LoggedInRoleName { get; private set; } = "";
 
+        /// <summary>
+        /// Id роли (см. таблицу Роли: 1-гость, 2-читатель, 3-библиотекарь, 4-администратор).
+        /// Для гостя (вход без аккаунта) = 0 (см. RoleIds.Guest).
+        /// </summary>
+        public int LoggedInRoleId { get; private set; }
+
         public LoginForm()
         {
             InitializeComponent();
@@ -70,7 +76,7 @@ namespace LibraryApp.Forms
             _btnLogin.FlatStyle = FlatStyle.Flat;
             _btnLogin.Click += BtnLogin_Click;
 
-            _btnGuest.Text = "Гость";
+            _btnGuest.Text = "Войти как гость";
             _btnGuest.Location = new Point(195, 210);
             _btnGuest.Size = new Size(135, 32);
             _btnGuest.FlatStyle = FlatStyle.Flat;
@@ -113,6 +119,7 @@ namespace LibraryApp.Forms
 
                 LoggedInFio = reader.Fio;
                 LoggedInRoleName = reader.RoleName;
+                LoggedInRoleId = reader.RoleId;
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -131,6 +138,7 @@ namespace LibraryApp.Forms
             // Гость не проходит авторизацию — сразу переходит к просмотру каталога.
             LoggedInFio = "Гость";
             LoggedInRoleName = "гость";
+            LoggedInRoleId = RoleIds.Guest;
             DialogResult = DialogResult.OK;
             Close();
         }

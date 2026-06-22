@@ -19,6 +19,7 @@ namespace LibraryApp
             {
                 string fio;
                 string roleName;
+                int roleId;
 
                 using (var loginForm = new LoginForm())
                 {
@@ -30,9 +31,10 @@ namespace LibraryApp
 
                     fio = loginForm.LoggedInFio;
                     roleName = loginForm.LoggedInRoleName;
+                    roleId = loginForm.LoggedInRoleId;
                 }
 
-                using var mainForm = new MainForm(fio, roleName);
+                using var mainForm = new MainForm(fio, roleName, roleId);
                 if (mainForm.ShowDialog() != DialogResult.OK)
                 {
                     break; // главное окно закрыто крестиком -> выход из приложения
