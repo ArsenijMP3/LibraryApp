@@ -50,7 +50,7 @@ namespace LibraryApp.Forms
 
             var lblLogo = new Label
             {
-                Text = "📚  Система учёта книг в библиотеке",
+                Text = "📚  Система учёта книг",
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(33, 47, 61),
                 AutoSize = false,
@@ -76,7 +76,7 @@ namespace LibraryApp.Forms
             _btnLogin.FlatStyle = FlatStyle.Flat;
             _btnLogin.Click += BtnLogin_Click;
 
-            _btnGuest.Text = "Войти как гость";
+            _btnGuest.Text = "Гость";
             _btnGuest.Location = new Point(195, 210);
             _btnGuest.Size = new Size(135, 32);
             _btnGuest.FlatStyle = FlatStyle.Flat;

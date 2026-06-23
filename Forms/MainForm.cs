@@ -371,7 +371,10 @@ namespace LibraryApp.Forms
                     continue; // плейсхолдер уже стоит — оставляем его
                 }
 
+                // thumb — независимый Bitmap (пиксели скопированы через DrawImage в Resize)
+                // raw больше не нужен — освобождаем сразу
                 Image thumb = ImageService.Resize(raw, 60, PhotoCellSize - 4);
+                raw.Dispose();
 
                 // Возвращаемся в UI-поток перед обновлением ячейки
                 if (IsDisposed || !IsHandleCreated)
